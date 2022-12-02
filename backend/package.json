@@ -1,0 +1,18 @@
+{
+  "name": "simple-chat-app",
+  "version": "1.0.0",
+  "description": "Simple chat application using socket.io with monogoDB as DB",
+  "main": "index.js",
+  "scripts": {
+    "server": "node index.js"
+  },
+  "author": "Jayant",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongoose": "^6.7.5",
+    "socket.io": "^4.5.4"
+  }
+}
