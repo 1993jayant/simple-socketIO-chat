@@ -1,5 +1,4 @@
 require("dotenv").config()
-const mongoose = require("mongoose")
 const db = require("./config/db")
 const Chat = require("./models/Chat")
 const express = require("express")
@@ -11,7 +10,7 @@ const app = express()
 const httpServer = createServer(app)
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:3000",
   },
 })
 
@@ -25,8 +24,16 @@ app.use(
 // call the db function to connect to the Database
 db()
 
-io.on("connection", (socket) => {
-  console.log("socket is connected")
+io.on("connection", async (socket) => {
+  try {
+    // get all the previous chats and send to the frontend
+    let chat = await Chat.find().limit(100).sort({ _id: 1 })
+
+    socket.emit("output", chat)
+  } catch (error) {
+    throw error
+  }
+
   // when an input comes to the server
   socket.on("input", async function (data) {
     let name = data.name

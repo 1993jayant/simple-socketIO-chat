@@ -4,7 +4,8 @@
   "description": "Simple chat application using socket.io with monogoDB as DB",
   "main": "index.js",
   "scripts": {
-    "server": "node index.js"
+    "server": "node index.js",
+    "dev": "nodemon index.js"
   },
   "author": "Jayant",
   "license": "ISC",
@@ -14,5 +15,8 @@
     "express": "^4.18.2",
     "mongoose": "^6.7.5",
     "socket.io": "^4.5.4"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
   }
 }
