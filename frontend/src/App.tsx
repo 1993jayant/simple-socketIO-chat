@@ -1,4 +1,4 @@
-import { KeyboardEvent, useEffect, useState } from "react"
+import { KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react"
 import { io } from "socket.io-client"
 
 const socket = io("http://localhost:5000")
@@ -42,16 +42,49 @@ function App() {
           setMessageText("")
         }
       })
+
+      // clear messages from the UI after clear button is pressed
+      socket.on("cleared", () => {
+        setChatMessages([])
+      })
     }
+
+    // clean up function to remove event listeners on component unmount to prevent multiple event listeners
     return () => {
-      socket.off("output")
-      socket.off("status")
+      socket.removeAllListeners()
+    }
+  }, [])
+
+  // mutation observer to observe new messages in order to scroll to the bottom
+  useEffect(() => {
+    const targetNode = document.getElementById("messageContainer")!
+
+    const callback = (
+      mutationList: MutationRecord[],
+      observer: MutationObserver
+    ) => {
+      for (const mutation of mutationList) {
+        targetNode.scrollTo(0, targetNode.scrollHeight)
+      }
+    }
+
+    const observer = new MutationObserver(callback)
+
+    // observe only child node changes
+    observer.observe(targetNode, {
+      childList: true,
+    })
+
+    // stop observing after component unmounts
+    return () => {
+      observer.disconnect()
     }
   }, [])
 
   // send the chat details to the server when enter key is pressed
   const handleReturnKey = (e: KeyboardEvent) => {
     if (e.key === "Enter" && e.shiftKey === false) {
+      e.preventDefault()
       socket.emit("input", {
         name: usernameText,
         message: messageText,
@@ -59,15 +92,25 @@ function App() {
     }
   }
 
+  // handle clear button click
+  const clearBtnClickHandler = (e: MouseEvent) => {
+    socket.emit("clear")
+  }
+
   return (
     <div className="container mx-auto max-w-md">
       <div className="flex items-center justify-center gap-2 pt-4 pb-2">
         <span className="text-2xl">MongoChat</span>
-        <span className="rounded-sm bg-orange-500 text-white px-4 py-1 cursor-pointer hover:opacity-90">
+        <span
+          className="rounded-sm bg-orange-500 text-white px-4 py-1 cursor-pointer hover:opacity-90"
+          onClick={clearBtnClickHandler}
+        >
           Clear
         </span>
       </div>
-      <div>{statusMessage}&nbsp;</div>
+      <div className="text-orange-400 mb-2 text-sm text-center">
+        {statusMessage}&nbsp;
+      </div>
 
       {/* username input */}
       <input
@@ -78,7 +121,10 @@ function App() {
       />
 
       {/* messages section */}
-      <div className="border border-gray-200 rounded-md overflow-auto h-52 mb-4">
+      <div
+        id="messageContainer"
+        className="border border-gray-200 rounded-md overflow-auto h-52 mb-4"
+      >
         {chatMessages.map((message: any, idx: number) => (
           <div key={idx} className="p-1 pb-0">
             <span className="text-slate-400">{message.name}: </span>
